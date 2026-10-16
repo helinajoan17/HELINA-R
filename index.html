@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Helina, year one</title>
+<meta name="theme-color" content="#181512">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{--tomato:#F2593B;--butter:#F4C94A;--forest:#1F4D3A;--ink:#181512;--paper:#FFF7E8}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--ink)}
+body{font-family:"Bricolage Grotesque",system-ui,sans-serif;color:var(--ink);overflow:hidden;-webkit-tap-highlight-color:transparent}
+button,a{font:inherit;color:inherit}
+:focus-visible{outline:3px solid currentColor;outline-offset:3px}
+
+.stage{position:fixed;inset:0;display:grid;place-items:center}
+.deck{position:relative;width:100%;height:100%;max-width:460px;container-type:inline-size;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+@media(min-width:600px){.deck{height:min(92vh,860px);border-radius:30px}}
+
+/* card = position in the deck, face = the tilting paper */
+.card{position:absolute;inset:0;perspective:900px;opacity:0;pointer-events:none;transform:scale(.94) translateY(3%);transition:transform .75s cubic-bezier(.7,0,.2,1),opacity .4s;z-index:1}
+.card.active{opacity:1;pointer-events:auto;transform:none;z-index:5}
+.card.past{opacity:1;transform:translateX(-118%) rotate(-9deg);z-index:4}
+.card.leaving{z-index:6}
+.face{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:68px 7cqw 7cqw;transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+@media(min-width:600px){.face{border-radius:30px}}
+.c-tomato .face{background:var(--tomato)}
+.c-butter .face{background:var(--butter)}
+.c-forest .face{background:var(--forest);color:var(--paper)}
+.art{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.sh{position:absolute;transform:translate(calc(var(--tx,0px)*var(--d,1)),calc(var(--ty,0px)*var(--d,1)))}
+.in{position:relative;min-height:100%;display:flex;flex-direction:column}
+
+/* progress segments */
+.bars{position:absolute;top:12px;left:5cqw;right:5cqw;display:flex;gap:5px;z-index:20}
+.bars button{flex:1;height:14px;padding:5px 0;border:0;background:rgba(24,21,18,.28);background-clip:content-box;cursor:pointer;border-radius:4px}
+.bars button.on{background-color:var(--ink)}
+.deck[data-tone=dark] .bars button{background-color:rgba(255,247,232,.3)}
+.deck[data-tone=dark] .bars button.on{background-color:var(--paper)}
+
+/* type */
+h1,h2,h3,p{margin:0}
+h2{font-weight:800;font-size:13.5cqw;line-height:.92;letter-spacing:-.04em}
+p{font-size:clamp(16px,4.5cqw,19px);line-height:1.45}
+.lead{margin-top:6cqw;display:grid;gap:4cqw;max-width:34em}
+.btn{min-height:48px;padding:12px 22px;font-weight:800;border:3px solid var(--ink);border-radius:999px;background:var(--ink);color:var(--paper);box-shadow:4px 4px 0 var(--butter);cursor:pointer;transition:transform .15s}
+.btn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--butter)}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:none}
+
+/* landing */
+.mono{all:unset;cursor:pointer;display:block;width:22cqw;height:22cqw}
+.mono svg{width:100%;height:100%;overflow:visible}
+.mono:focus-visible{outline:3px solid var(--ink);outline-offset:6px;border-radius:50%}
+.name{font-weight:800;font-size:20.5cqw;line-height:.85;letter-spacing:-.045em;margin-top:auto}
+.sketch{display:block;width:78%;margin:2cqw 0 0 .5cqw;overflow:visible}
+.sketch path{fill:none;stroke:var(--ink);stroke-linecap:round;stroke-width:5;stroke-dasharray:1;stroke-dashoffset:1}
+.sketch path+path{stroke-width:3}
+.ready .card.active .sketch path{animation:draw 1.1s .15s cubic-bezier(.6,0,.2,1) forwards}
+.ready .card.active .sketch path+path{animation-delay:.9s;animation-duration:.6s}
+@keyframes draw{to{stroke-dashoffset:0}}
+.tag{margin-top:5cqw;font-weight:600;font-size:clamp(18px,5.2cqw,22px);line-height:1.3;max-width:20em}
+.now{margin-top:3cqw;font-size:clamp(15px,4cqw,17px)}
+.btns{display:flex;gap:12px;flex-wrap:wrap;margin-top:6cqw}
+.hint{margin-top:5cqw;font-size:14px;opacity:.75}
+
+/* skills */
+.levels{margin-top:7cqw;display:grid;gap:6cqw}
+.pill{display:inline-block;font-weight:800;font-size:clamp(20px,6cqw,26px);padding:6px 18px;border-radius:999px;border:3px solid var(--paper)}
+.pill.a{background:var(--paper);color:var(--forest)}
+.pill.b{background:linear-gradient(90deg,var(--paper) 50%,transparent 50%);color:var(--ink);mix-blend-mode:normal}
+.pill.c{border-style:dashed}
+.levels p{margin-top:2.5cqw;font-weight:600}
+
+/* journey */
+.path{margin-top:7cqw;position:relative;display:grid;gap:7cqw;padding-left:14cqw}
+.path:before{content:"";position:absolute;left:4cqw;top:8px;bottom:8px;border-left:4px solid var(--ink)}
+.path>div{position:relative}
+.dot{position:absolute;left:-12.5cqw;top:5px;width:6cqw;height:6cqw;border-radius:50%;border:4px solid var(--ink);background:var(--ink)}
+.dot.h{background:linear-gradient(90deg,var(--ink) 50%,var(--tomato) 50%)}
+.dot.e{background:var(--tomato);border-style:dashed}
+h3{font-weight:800;font-size:clamp(22px,7cqw,30px);letter-spacing:-.02em;margin-bottom:6px}
+
+/* beyond */
+.chips{margin-top:7cqw;display:flex;flex-wrap:wrap;gap:3cqw 2.5cqw;align-items:flex-start}
+.chip{font-weight:800;line-height:1.1;padding:3.5cqw 5cqw;border-radius:6cqw 6cqw 6cqw 1.5cqw;border:3px solid var(--ink);max-width:80%}
+.chip:nth-child(1){background:var(--ink);color:var(--paper);font-size:7cqw;transform:rotate(-3deg)}
+.chip:nth-child(2){background:var(--paper);font-size:5cqw;transform:rotate(2deg);margin-left:8cqw}
+.chip:nth-child(3){background:var(--forest);color:var(--paper);font-size:6cqw;transform:rotate(-1.5deg)}
+.chip:nth-child(4){background:var(--tomato);font-size:4.6cqw;transform:rotate(3deg);margin-left:12cqw}
+
+/* contact */
+.links{margin-top:8cqw;display:grid}
+.links a{font-weight:800;font-size:clamp(22px,7.4cqw,32px);letter-spacing:-.02em;text-decoration:none;padding:4.5cqw 0;border-top:3px solid var(--paper);overflow-wrap:anywhere;background:linear-gradient(var(--butter),var(--butter)) 0 100%/0 6px no-repeat;transition:background-size .35s cubic-bezier(.6,0,.2,1)}
+.links a:last-child{border-bottom:3px solid var(--paper)}
+.links a:hover,.links a:focus-visible{background-size:100% 6px}
+.btn.paper{background:var(--paper);color:var(--forest);border-color:var(--paper);box-shadow:4px 4px 0 var(--tomato);margin-top:8cqw;align-self:flex-start}
+
+/* opening: three panels slide away */
+.intro{position:fixed;inset:0;z-index:100}
+.intro[hidden]{display:none}
+.band{position:absolute;left:0;right:0;height:34.2%;transition:transform .8s cubic-bezier(.76,0,.24,1);display:grid;place-items:center}
+.band:nth-child(1){top:0;background:var(--butter)}
+.band:nth-child(2){top:33%;background:var(--forest);color:var(--paper)}
+.band:nth-child(3){top:66%;background:var(--tomato)}
+.go .band:nth-child(1){transform:translateX(-101%);transition-delay:.05s}
+.go .band:nth-child(2){transform:translateX(101%);transition-delay:.19s}
+.go .band:nth-child(3){transform:translateX(-101%);transition-delay:.33s}
+.band b{font-size:clamp(26px,6vw,54px);font-weight:800;letter-spacing:-.03em;text-align:center;padding:0 16px;transition:opacity .3s}
+.go .band b{opacity:0}
+.skip{position:fixed;top:16px;right:16px;z-index:101;min-height:44px;padding:8px 18px;border:3px solid var(--ink);border-radius:999px;background:var(--paper);font-weight:800;cursor:pointer}
+
+@media(prefers-reduced-motion:reduce){
+ .card,.face,.band,.links a{transition:none!important}
+ .sketch path{stroke-dashoffset:0!important;animation:none!important}
+}
+</style>
+</head>
+<body>
+<div class="stage">
+<main class="deck" id="deck" data-tone="light" aria-label="Helina's portfolio, six cards">
+<div class="bars" id="bars"></div>
+
+<!-- 1 · Landing -->
+<section class="card c-tomato active" data-tone="light" aria-label="Hello">
+ <div class="face"><div class="art" aria-hidden="true">
+  <div class="sh" style="--d:1.2;width:30cqw;height:30cqw;background:var(--forest);right:-6cqw;top:16cqw;rotate:14deg"></div>
+  <div class="sh" style="--d:.6;width:74cqw;height:74cqw;border-radius:50%;background:var(--butter);right:-26cqw;bottom:-22cqw"></div>
+ </div>
+ <div class="in">
+  <button class="mono" id="mono" aria-label="Monogram H">
+   <svg viewBox="0 0 100 100"><circle cx="56" cy="56" r="44" fill="#181512"/><circle cx="50" cy="50" r="44" fill="#F4C94A" stroke="#181512" stroke-width="4"/><path d="M33 28v44M67 28v44M33 50h34" stroke="#181512" stroke-width="11" stroke-linecap="round" fill="none"/></svg>
+  </button>
+  <h1 class="name">HELINA</h1>
+  <svg class="sketch" viewBox="0 0 300 26" aria-hidden="true"><path pathLength="1" d="M3 15C40 5 72 21 112 11S192 7 228 15 282 8 297 13"/><path pathLength="1" d="M28 22C90 17 150 23 236 19"/></svg>
+  <!-- EDIT: tagline and "currently" line -->
+  <p class="tag">First-year IT student, learning to build things that feel hand-made.</p>
+  <p class="now">Currently: learning JavaScript and breaking things on purpose.</p>
+  <div class="btns"><button class="btn" id="explore">Explore</button><button class="btn ghost" id="sayhi">Say hi</button></div>
+  <p class="hint">Tap, swipe or use the arrow keys to flip cards.</p>
+ </div></div>
+</section>
+
+<!-- 2 · About -->
+<section class="card c-butter" data-tone="light" aria-label="About">
+ <div class="face"><div class="art" aria-hidden="true">
+  <div class="sh" style="--d:1;width:48cqw;height:48cqw;border-radius:50%;background:var(--tomato);right:-16cqw;top:-14cqw"></div>
+  <div class="sh" style="--d:1.4;width:22cqw;height:22cqw;background:var(--forest);left:-7cqw;bottom:18cqw;rotate:-12deg"></div>
+ </div>
+ <div class="in">
+  <h2 style="margin-top:14cqw">Hi, I'm Helina.</h2>
+  <!-- EDIT: replace with your own story from your Me-Map -->
+  <div class="lead">
+   <p>I'm in the first year of a B.Tech in Information Technology, and most days I'm somewhere between "I think I get this" and "wait, why did that work?" I like that feeling more than I expected to.</p>
+   <p>I'm early in all of this, so this page is me showing what I'm learning, not pretending I've got it figured out.</p>
+   <p>Ask me anything. I'd rather say "I don't know yet" than bluff.</p>
+  </div>
+ </div></div>
+</section>
+
+<!-- 3 · Skills -->
+<section class="card c-forest" data-tone="dark" aria-label="Skills">
+ <div class="face"><div class="art" aria-hidden="true">
+  <div class="sh" style="--d:1;width:36cqw;height:36cqw;border-radius:50%;background:var(--butter);right:-14cqw;top:-16cqw"></div>
+ </div>
+ <div class="in">
+  <h2 style="margin-top:20cqw">Where I'm at</h2>
+  <!-- EDIT: swap in your real skills; filled pill = comfortable, half = getting there, dashed = just started -->
+  <div class="levels">
+   <div><span class="pill a">Comfortable</span><p>HTML, CSS, reading documentation</p></div>
+   <div><span class="pill b">Getting there</span><p>JavaScript, Python, Git</p></div>
+   <div><span class="pill c">Just started</span><p>C, data structures, SQL</p></div>
+  </div>
+ </div></div>
+</section>
+
+<!-- 4 · Journey -->
+<section class="card c-tomato" data-tone="light" aria-label="Journey">
+ <div class="face"><div class="art" aria-hidden="true">
+  <div class="sh" style="--d:1.3;width:40cqw;height:40cqw;background:var(--butter);right:-14cqw;bottom:-10cqw;rotate:18deg"></div>
+ </div>
+ <div class="in">
+  <h2 style="margin-top:14cqw">The road so far</h2>
+  <!-- EDIT: your real projects and goals -->
+  <div class="path">
+   <div><i class="dot"></i><h3>Made</h3><p>This site, in a single HTML file, with no images.</p></div>
+   <div><i class="dot h"></i><h3>Learning now</h3><p>JavaScript, and how to read an error message without panicking.</p></div>
+   <div><i class="dot e"></i><h3>Want to build</h3><p>A small app a friend would actually open every day.</p></div>
+  </div>
+ </div></div>
+</section>
+
+<!-- 5 · Beyond code -->
+<section class="card c-butter" data-tone="light" aria-label="Beyond code">
+ <div class="face"><div class="art" aria-hidden="true">
+  <div class="sh" style="--d:1;width:60cqw;height:60cqw;border-radius:50%;background:var(--forest);left:-24cqw;bottom:-24cqw"></div>
+  <div class="sh" style="--d:1.5;width:26cqw;height:26cqw;border-radius:50%;background:var(--tomato);right:-8cqw;top:-8cqw"></div>
+ </div>
+ <div class="in">
+  <h2 style="margin-top:14cqw">Beyond code</h2>
+  <!-- EDIT: your real hobbies and fun facts -->
+  <div class="chips">
+   <span class="chip">Doodles in every notebook margin</span>
+   <span class="chip">A playlist for each mood</span>
+   <span class="chip">Tea before debugging</span>
+   <span class="chip">Fun fact: the hand-drawn line on card one is code</span>
+  </div>
+ </div></div>
+</section>
+
+<!-- 6 · Contact -->
+<section class="card c-forest" data-tone="dark" aria-label="Contact">
+ <div class="face"><div class="art" aria-hidden="true">
+  <div class="sh" style="--d:1;width:70cqw;height:70cqw;border-radius:50%;background:var(--tomato);right:-30cqw;bottom:-34cqw"></div>
+  <div class="sh" style="--d:1.4;width:18cqw;height:18cqw;background:var(--butter);right:6cqw;top:14cqw;rotate:10deg"></div>
+ </div>
+ <div class="in">
+  <h2 style="margin-top:14cqw">Say hi.</h2>
+  <!-- EDIT: your real email and profile links -->
+  <div class="links">
+   <a href="mailto:helina@example.com">helina@example.com</a>
+   <a href="https://www.linkedin.com/in/your-handle" target="_blank" rel="noopener">LinkedIn</a>
+   <a href="https://github.com/your-handle" target="_blank" rel="noopener">GitHub</a>
+  </div>
+  <button class="btn paper" id="again">Back to the start</button>
+ </div></div>
+</section>
+</main>
+</div>
+
+<div class="intro" id="intro" aria-hidden="true">
+ <div class="band"></div><div class="band"><b id="introText">Helina, year one</b></div><div class="band"></div>
+</div>
+<button class="skip" id="skip">Skip</button>
+
+<script>
+const $=s=>document.querySelector(s);
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const deck=$('#deck'),bars=$('#bars'),cards=[...deck.querySelectorAll('.card')];
+let cur=0;
+
+cards.forEach((c,i)=>{const b=document.createElement('button');b.setAttribute('aria-label','Go to card '+(i+1));b.onclick=()=>go(i);bars.append(b)});
+function render(){
+ cards.forEach((c,i)=>{c.classList.toggle('active',i===cur);c.classList.toggle('past',i<cur);c.inert=i!==cur});
+ [...bars.children].forEach((b,i)=>b.classList.toggle('on',i<=cur));
+ deck.dataset.tone=cards[cur].dataset.tone;
+}
+function go(n){
+ n=Math.max(0,Math.min(cards.length-1,n));if(n===cur)return;
+ if(n>cur){const o=cards[cur];o.classList.add('leaving');setTimeout(()=>o.classList.remove('leaving'),800)}
+ cur=n;render();
+}
+render();
+$('#explore').onclick=()=>go(cur+1);
+$('#sayhi').onclick=()=>go(cards.length-1);
+$('#again').onclick=()=>go(0);
+addEventListener('keydown',e=>{
+ if(e.key==='ArrowRight')go(cur+1);
+ if(e.key==='ArrowLeft')go(cur-1);
+});
+
+/* signature move: cards tilt toward your finger */
+let p=null;
+function tilt(e){
+ if(RM)return;
+ const r=deck.getBoundingClientRect(),nx=((e.clientX-r.left)/r.width-.5)*2,ny=((e.clientY-r.top)/r.height-.5)*2;
+ deck.style.setProperty('--ry',(nx*7).toFixed(2)+'deg');
+ deck.style.setProperty('--rx',(-ny*7).toFixed(2)+'deg');
+ deck.style.setProperty('--tx',(-nx*12).toFixed(1)+'px');
+ deck.style.setProperty('--ty',(-ny*12).toFixed(1)+'px');
+}
+function reset(){['--rx','--ry','--tx','--ty'].forEach(v=>deck.style.removeProperty(v))}
+deck.addEventListener('pointerdown',e=>{p={x:e.clientX,y:e.clientY,moved:false};tilt(e)});
+deck.addEventListener('pointermove',e=>{
+ if(e.pointerType==='mouse'||p)tilt(e);
+ if(p&&Math.hypot(e.clientX-p.x,e.clientY-p.y)>10)p.moved=true;
+});
+deck.addEventListener('pointerup',e=>{
+ if(!p)return;const q=p;p=null;reset();
+ const dx=e.clientX-q.x,dy=e.clientY-q.y;
+ if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)){go(cur+(dx<0?1:-1));return}
+ if(!q.moved&&!e.target.closest('button,a')){
+  const r=deck.getBoundingClientRect();
+  go(cur+((e.clientX-r.left)<r.width*.3?-1:1));
+ }
+});
+deck.addEventListener('pointercancel',()=>{p=null;reset()});
+deck.addEventListener('pointerleave',()=>{if(!p)reset()});
+
+/* opening + easter egg share the same card shuffle */
+const intro=$('#intro'),skip=$('#skip');let timers=[];
+function finish(){timers.forEach(clearTimeout);timers=[];intro.hidden=true;skip.hidden=true;document.body.classList.add('ready')}
+function shuffle(text,first){
+ timers.forEach(clearTimeout);
+ $('#introText').textContent=text;
+ intro.hidden=false;skip.hidden=false;intro.classList.remove('go');void intro.offsetWidth;
+ timers=[setTimeout(()=>intro.classList.add('go'),550),
+  setTimeout(()=>document.body.classList.add('ready'),first?1100:0),
+  setTimeout(finish,1900)];
+}
+skip.onclick=finish;
+if(RM||sessionStorage.getItem('seen'))finish();
+else{sessionStorage.setItem('seen','1');shuffle('Helina, year one',true)}
+
+/* hidden easter egg: tap the H monogram three times */
+let taps=[];
+$('#mono').onclick=()=>{
+ const n=Date.now();taps=taps.filter(t=>n-t<1500);taps.push(n);
+ if(taps.length>=3){taps=[];shuffle('You found the secret shuffle.')}
+};
+</script>
+</body>
+</html>
